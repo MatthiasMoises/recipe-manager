@@ -1,0 +1,9 @@
+client/.DS_Store
+client/node_modules
+client/dist
+server/vendor
+server/.idea
+server/Homestead.json
+server/Homestead.yaml
+server/.env
+server/.phpunit.result.cache
