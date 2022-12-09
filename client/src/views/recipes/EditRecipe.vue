@@ -205,7 +205,7 @@ export default {
     return {
       mode: 'add',
       loading: false,
-      allowedUnits: ['g', 'mg', 'Kg', 'EL', 'TL', 'Tasse'],
+      allowedUnits: ['g', 'mg', 'kg', 'EL', 'TL', 'Tasse'],
       recipe: {
         name: '',
         short_description: '',

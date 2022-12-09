@@ -36,14 +36,14 @@
           <b>Zutaten</b>
           <ul>
             <li v-for="(ingredient, index) in recipe.ingredients" :key="index">
-              {{ (ingredient.amount * multiplier > 0) ? ingredient.amount * multiplier : '' }} {{ ingredient.unit }} {{ ingredient.name }}
+              {{ optimizeQuantity(ingredient.amount, ingredient.unit) }} {{ ingredient.name }}
             </li>
           </ul>
         </v-col>
       </v-row>
       <v-row v-if="hasTotalWeight">
         <v-col>
-          <b>Gesamtgewicht: {{ recipe.total_weight * multiplier }} g</b>
+          <b>Gesamtgewicht: {{ optimizeQuantity(recipe.total_weight, 'g') }}</b>
         </v-col>
       </v-row>
       <v-row>
@@ -216,6 +216,26 @@ export default {
       }
       finally {
         this.loading = false
+      }
+    },
+    optimizeQuantity (amount, unit) {
+      amount *= this.multiplier
+
+      if (unit === 'EL' || unit === 'TL' || unit === 'Tasse' || unit === 'kg') {
+        return amount ? amount + ' ' + unit : unit
+      }
+
+      if (amount !== null && unit !== null) {
+        if (amount >= 1000 && unit === 'g') {
+          return (amount / 1000) + ' kg'
+        }
+        else if (amount >= 1000 && unit === 'mg') {
+          return (amount / 1000) + ' g'
+        } else {
+          return amount + ' ' + unit
+        }
+      } else {
+        return ''
       }
     }
   }
