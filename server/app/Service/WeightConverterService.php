@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Traits;
+namespace App\Service;
 
 use App\Models\Ingredient;
 
-trait WeightConverter
+class WeightConverterService
 {
-    public function convertToGrams($amount, $unit, Ingredient $ingredient = null) {
+    public function convertToGrams($amount, $unit, Ingredient $ingredient = null): float
+    {
         switch ($unit) {
             case 'mg':
                 $gramsValue = $amount / 1000;

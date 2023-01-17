@@ -3,23 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ingredient;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class IngredientController extends Controller
 {
-    public function getIngredientNames() {
+    public function getIngredientNames(): JsonResponse {
         $ingredients = Ingredient::pluck('name')->toArray();
 
         return response()->json($ingredients, 200);
     }
 
-    public function showIngredients() {
+    public function showIngredients(): JsonResponse {
         $ingredients = Ingredient::all();
 
         return response()->json($ingredients, 200);
     }
 
-    public function saveIngredient (Request $request) {
+    public function saveIngredient (Request $request): JsonResponse {
         // Validation
         $formFields = $this->validator($request);
 
@@ -28,7 +29,7 @@ class IngredientController extends Controller
         return response()->json($ingredient, 201);
     }
 
-    public function updateIngredient (Request $request, $id) {
+    public function updateIngredient (Request $request, $id): JsonResponse {
         $formFields = $this->validator($request);
         $ingredient = Ingredient::find($id);
 
@@ -40,7 +41,7 @@ class IngredientController extends Controller
         }
     }
 
-    public function deleteIngredient ($id) {
+    public function deleteIngredient ($id): JsonResponse {
         if (Ingredient::destroy($id)) {
             return response()->json("Ingredient id $id deleted", 200);
         } else {
@@ -48,7 +49,7 @@ class IngredientController extends Controller
         }
     }
 
-    private function validator(Request $request) {
+    private function validator(Request $request): array{
         return $this->validate($request, [
             'name' => 'required',
             'cup_in_grams' => 'numeric',

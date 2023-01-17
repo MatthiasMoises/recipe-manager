@@ -5,41 +5,28 @@ namespace App\Http\Controllers;
 use App\Models\Recipe;
 use App\Models\Ingredient;
 use App\Models\PreparationStep;
+use App\Service\WeightConverterService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
-use App\Traits\WeightConverter;
 
 use App\Http\Resources\RecipeResource;
 
 class RecipeController extends Controller
 {
-    use WeightConverter;
+    private WeightConverterService $weightConverter;
 
-    public function showRecipes() {
+    public function __construct(WeightConverterService $weightConverter) {
+        $this->weightConverter = $weightConverter;
+    }
+
+    public function showRecipes(): JsonResponse {
         $recipes = Recipe::with(['ingredients', 'preparationSteps'])->get();
 
         return response()->json($recipes, 200);
     }
 
-    public function viewRecipe($id) {
-        // $recipe = Recipe::with(['ingredients', 'preparationSteps'])->find($id);
+    public function viewRecipe($id): JsonResponse {
         $recipe = new RecipeResource(Recipe::with(['ingredients', 'preparationSteps'])->find($id));
-
-        $totalWeight = $preparationTime = $cookingTime = 0;
-
-        foreach ($recipe->ingredients as $ingredient) {
-            $totalWeight += $ingredient['pivot']['amount_in_grams'];
-        }
-
-        $recipe->total_weight = $totalWeight;
-
-        foreach ($recipe->preparationSteps as $preparationStep) {
-            $preparationTime += $preparationStep['preparation_time'];
-            $cookingTime += $preparationStep['cooking_time'];
-        }
-
-        $recipe->preparation_time = $preparationTime;
-        $recipe->cooking_time = $cookingTime;
 
         if ($recipe) {
             return response()->json($recipe, 200);
@@ -47,7 +34,7 @@ class RecipeController extends Controller
         return response()->json([], 200);
     }
 
-    public function saveRecipe(Request $request) {
+    public function saveRecipe(Request $request): JsonResponse {
         // Validation
         $formFields = $this->validator($request);
 
@@ -67,7 +54,7 @@ class RecipeController extends Controller
         return response()->json($recipe, 201);
     }
 
-    public function updateRecipe(Request $request, $id) {
+    public function updateRecipe(Request $request, $id): JsonResponse {
         $formFields = $this->validator($request);
 
         $recipe = Recipe::find($id);
@@ -88,9 +75,8 @@ class RecipeController extends Controller
 
             $recipe->update($formFields);
 
-            // Remove and readd relations
-            $recipe->ingredients()->detach();
-            $recipe->preparationSteps()->detach();
+            // Remove and read relations
+            $this->detachRelations($recipe);
 
             $recipe->ingredients()->attach($processedIngredients);
             $recipe->preparationSteps()->attach($processedPreparationSteps);
@@ -101,7 +87,7 @@ class RecipeController extends Controller
         }
     }
 
-    public function deleteRecipe($id) {
+    public function deleteRecipe($id): JsonResponse {
         $recipe = Recipe::find($id);
 
         // Delete relating Preparation steps
@@ -110,8 +96,7 @@ class RecipeController extends Controller
         }
 
         // Remove data from pivot tables
-        $recipe->ingredients()->detach();
-        $recipe->preparationSteps()->detach();
+        $this->detachRelations($recipe);
 
         // Delete recipe
         if ($recipe->destroy($id)) {
@@ -121,7 +106,7 @@ class RecipeController extends Controller
         }
     }
 
-    private function validator(Request $request) {
+    private function validator(Request $request): array {
         return $this->validate($request, [
             'name' => 'required',
             'short_description' => 'nullable',
@@ -131,7 +116,7 @@ class RecipeController extends Controller
         ]);
     }
 
-    private function processIngredients($ingredients) {
+    private function processIngredients($ingredients): array{
         foreach ($ingredients as $index => $ingredient) {
             // Check if ingredient exists already, if not, create it
             $existingIngredient = Ingredient::where('name', $ingredient['name'])->first();
@@ -148,7 +133,7 @@ class RecipeController extends Controller
             // Convert unit if possible
             if (isset($ingredient['unit'], $ingredient['amount'])) {
                 if ($existingIngredient || ($ingredient['unit'] == 'mg' || $ingredient['unit'] == 'kg' || $ingredient['unit'] == 'g')) {
-                    $ingredients[$index]['amount_in_grams'] = $this->convertToGrams($ingredient['amount'], $ingredient['unit'], $existingIngredient);
+                    $ingredients[$index]['amount_in_grams'] = $this->weightConverter->convertToGrams($ingredient['amount'], $ingredient['unit'], $existingIngredient);
                 }
             }
 
@@ -163,7 +148,7 @@ class RecipeController extends Controller
         return $ingredients;
     }
 
-    private function processPreparationSteps($preparationSteps) {
+    private function processPreparationSteps($preparationSteps): array {
         $preparationStepIds = [];
 
         foreach ($preparationSteps as $preparationStep) {
@@ -171,5 +156,10 @@ class RecipeController extends Controller
         }
 
         return $preparationStepIds;
+    }
+
+    private function detachRelations($recipe) {
+        $recipe->ingredients()->detach();
+        $recipe->preparationSteps()->detach();
     }
 }
