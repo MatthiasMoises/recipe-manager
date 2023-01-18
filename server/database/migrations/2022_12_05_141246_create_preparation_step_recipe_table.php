@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('preparation_step_recipe', function (Blueprint $table) {
             $table->id();
             $table->integer('preparation_step_id')->unsigned();
-            $table->integer('recipe_id')->unsigned();
+            $table->unsignedBigInteger('recipe_id')->unsigned();
+            $table->foreign('recipe_id')->references('id')->on('recipes')->onDelete('cascade');
             $table->timestamps();
         });
     }

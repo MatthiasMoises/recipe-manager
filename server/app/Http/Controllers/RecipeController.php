@@ -38,18 +38,14 @@ class RecipeController extends Controller
         // Validation
         $formFields = $this->validator($request);
 
-        // Add ingredients
         $ingredients = $formFields['ingredients'];
-        $processedIngredients = $this->processIngredients($ingredients);
-
-        // Add preparation steps
         $preparationSteps = $formFields['preparation_steps'];
-        $processedPreparationSteps = $this->processPreparationSteps($preparationSteps);
 
         // Create Recipe and add relation data
         $recipe = Recipe::create($formFields);
-        $recipe->ingredients()->attach($processedIngredients);
-        $recipe->preparationSteps()->attach($processedPreparationSteps);
+
+        $recipe->addIngredients($ingredients, $this->weightConverter);
+        $recipe->addPreparationSteps($preparationSteps);
 
         return response()->json($recipe, 201);
     }
@@ -60,26 +56,19 @@ class RecipeController extends Controller
         $recipe = Recipe::find($id);
 
         if ($recipe) {
-            // Add ingredients
-            $ingredients = $formFields['ingredients'];
-            $processedIngredients = $this->processIngredients($ingredients);
-
             // Just delete relating Preparation steps
-            foreach ($recipe->preparationSteps as $preparationStep) {
-                PreparationStep::destroy($preparationStep->id);
-            }
+            $recipe->deleteRelatedPreparationSteps();
 
-            // Add preparation steps
+            $ingredients = $formFields['ingredients'];
             $preparationSteps = $formFields['preparation_steps'];
-            $processedPreparationSteps = $this->processPreparationSteps($preparationSteps);
-
             $recipe->update($formFields);
 
             // Remove and read relations
-            $this->detachRelations($recipe);
+            $recipe->removeIngredients();
+            $recipe->removePreparationSteps();
 
-            $recipe->ingredients()->attach($processedIngredients);
-            $recipe->preparationSteps()->attach($processedPreparationSteps);
+            $recipe->addIngredients($ingredients, $this->weightConverter);
+            $recipe->addPreparationSteps($preparationSteps);
 
             return response()->json($recipe, 200);
         } else {
@@ -90,13 +79,9 @@ class RecipeController extends Controller
     public function deleteRecipe($id): JsonResponse {
         $recipe = Recipe::find($id);
 
-        // Delete relating Preparation steps
-        foreach ($recipe->preparationSteps as $preparationStep) {
-            PreparationStep::destroy($preparationStep->id);
-        }
-
         // Remove data from pivot tables
-        $this->detachRelations($recipe);
+        $recipe->removeIngredients();
+        $recipe->removePreparationSteps();
 
         // Delete recipe
         if ($recipe->destroy($id)) {
@@ -116,50 +101,4 @@ class RecipeController extends Controller
         ]);
     }
 
-    private function processIngredients($ingredients): array{
-        foreach ($ingredients as $index => $ingredient) {
-            // Check if ingredient exists already, if not, create it
-            $existingIngredient = Ingredient::where('name', $ingredient['name'])->first();
-
-            if (empty($existingIngredient)) {
-                $ingredientId = Ingredient::create($ingredient)->id;
-            } else {
-                $ingredientId = $existingIngredient->id;
-            }
-
-            // Set Ingredient ID
-            $ingredients[$index]['ingredient_id'] = $ingredientId;
-
-            // Convert unit if possible
-            if (isset($ingredient['unit'], $ingredient['amount'])) {
-                if ($existingIngredient || ($ingredient['unit'] == 'mg' || $ingredient['unit'] == 'kg' || $ingredient['unit'] == 'g')) {
-                    $ingredients[$index]['amount_in_grams'] = $this->weightConverter->convertToGrams($ingredient['amount'], $ingredient['unit'], $existingIngredient);
-                }
-            }
-
-            if (!isset($ingredients[$index]['amount_in_grams'])) {
-                $ingredients[$index]['amount_in_grams'] = 0;
-            }
-
-            // No name field in pivot table
-            unset($ingredients[$index]['name']);
-        }
-
-        return $ingredients;
-    }
-
-    private function processPreparationSteps($preparationSteps): array {
-        $preparationStepIds = [];
-
-        foreach ($preparationSteps as $preparationStep) {
-            $preparationStepIds[] = PreparationStep::create($preparationStep)->id;
-        }
-
-        return $preparationStepIds;
-    }
-
-    private function detachRelations($recipe) {
-        $recipe->ingredients()->detach();
-        $recipe->preparationSteps()->detach();
-    }
 }
