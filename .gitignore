@@ -7,3 +7,4 @@ server/Homestead.json
 server/Homestead.yaml
 server/.env
 server/.phpunit.result.cache
+server/storage/framework/sessions/*
