@@ -2,14 +2,14 @@
 
 namespace App\Actions\Recipe;
 
+use App\Http\Requests\StoreRecipeRequest;
 use App\Models\Recipe;
 use App\Service\WeightConverterService;
-use Illuminate\Http\Request;
 
 class StoreRecipeAction
 {
     // Create Recipe and add relation data
-    public function execute(Request $request, WeightConverterService $weightConverter): Recipe {
+    public function execute(StoreRecipeRequest $request, WeightConverterService $weightConverter): Recipe {
         $recipe = Recipe::create([
             'name' => $request->name,
             'short_description' => $request->short_description,

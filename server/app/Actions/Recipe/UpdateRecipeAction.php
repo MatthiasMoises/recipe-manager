@@ -2,13 +2,13 @@
 
 namespace App\Actions\Recipe;
 
+use App\Http\Requests\StoreRecipeRequest;
 use App\Models\Recipe;
 use App\Service\WeightConverterService;
-use Illuminate\Http\Request;
 
 class UpdateRecipeAction
 {
-    public function execute(Request $request, int $recipeId, WeightConverterService $weightConverter): Recipe | null {
+    public function execute(StoreRecipeRequest $request, int $recipeId, WeightConverterService $weightConverter): Recipe | null {
         $recipe = Recipe::find($recipeId);
 
         if ($recipe) {

@@ -2,12 +2,12 @@
 
 namespace App\Actions\Ingredient;
 
+use App\Http\Requests\StoreIngredientRequest;
 use App\Models\Ingredient;
-use Illuminate\Http\Request;
 
 class StoreIngredientAction
 {
-    public function execute(Request $request): Ingredient {
+    public function execute(StoreIngredientRequest $request): Ingredient {
         $ingredient = Ingredient::create([
             'name' => $request->name,
             'cup_in_grams' => $request->cup_in_grams,

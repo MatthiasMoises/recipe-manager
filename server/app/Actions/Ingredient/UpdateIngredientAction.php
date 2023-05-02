@@ -2,12 +2,12 @@
 
 namespace App\Actions\Ingredient;
 
+use App\Http\Requests\StoreIngredientRequest;
 use App\Models\Ingredient;
-use Illuminate\Http\Request;
 
 class UpdateIngredientAction
 {
-    public function execute(Request $request, int $ingredientId): Ingredient | null {
+    public function execute(StoreIngredientRequest $request, int $ingredientId): Ingredient | null {
         $ingredient = Ingredient::find($ingredientId);
 
         if ($ingredient) {
