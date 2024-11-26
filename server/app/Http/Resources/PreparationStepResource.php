@@ -14,9 +14,9 @@ class PreparationStepResource extends JsonResource
     public function toArray($request)
     {
         return [
-            "short_description" => $this->short_description,
-            "preparation_time" => $this->preparation_time,
-            "cooking_time" => $this->cooking_time,
+            "shortDescription" => $this->short_description,
+            "preparationTime" => $this->preparation_time,
+            "cookingTime" => $this->cooking_time,
             // "recipe_id" => $this->pivot->recipe_id
         ];
     }

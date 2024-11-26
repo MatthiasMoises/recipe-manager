@@ -17,7 +17,7 @@ class IngredientResource extends JsonResource
             'name' => $this->name,
             'amount' => $this->pivot->amount,
             'unit' => $this->pivot->unit,
-            'amount_in_grams' => $this->pivot->amount_in_grams,
+            'amountInGrams' => $this->pivot->amount_in_grams,
         ];
     }
 }

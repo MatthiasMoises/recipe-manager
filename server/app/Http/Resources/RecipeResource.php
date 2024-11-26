@@ -16,15 +16,15 @@ class RecipeResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'short_description' => $this->short_description,
-            'number_of_people' => $this->number_of_people,
+            'shortDescription' => $this->short_description,
+            'numberOfPeople' => $this->number_of_people,
             'ingredients' => IngredientResource::collection($this->ingredients),
-            'preparation_steps' => PreparationStepResource::collection($this->preparationSteps),
-            'total_weight' => $this->getSumTotalWeight($this->ingredients),
-            'preparation_time' => $this->getSumPreparationTime($this->preparationSteps),
-            'cooking_time' => $this->getSumCookingTime($this->preparationSteps),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'preparationSteps' => PreparationStepResource::collection($this->preparationSteps),
+            'totalWeight' => $this->getSumTotalWeight($this->ingredients),
+            'preparationTime' => $this->getSumPreparationTime($this->preparationSteps),
+            'cookingTime' => $this->getSumCookingTime($this->preparationSteps),
+            'createdAt' => $this->created_at,
+            'updatedAt' => $this->updated_at
         ];
     }
 

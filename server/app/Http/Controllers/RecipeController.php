@@ -22,7 +22,15 @@ class RecipeController extends Controller
 
     public function showRecipes(): JsonResponse {
         $recipes = Recipe::with(['ingredients', 'preparationSteps'])->get();
-        return response()->json($recipes, 200);
+
+        // Workaround for Lumens missing Resource Collections
+        $recipesResourced = [];
+
+        foreach ($recipes as $recipe) {
+            array_push($recipesResourced, new RecipeResource($recipe));
+        }
+
+        return response()->json($recipesResourced, 200);
     }
 
     public function viewRecipe($id): JsonResponse {
